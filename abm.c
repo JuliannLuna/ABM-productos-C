@@ -1,19 +1,3 @@
-/* 
-
-Se desea realizar un programa que permita actualizar la lista de precios de una empresa en forma individual a cada uno de sus productos.
-Los productos que están guardados en el archivo productos.dat con la siguiente estructura:
-    • Código (entero)
-    • Precio (float)
-    • Descripción (de hasta 50 caracteres)
-
-Para modificar un precio se ingresa por teclado el código del producto y el nuevo precio. La modificación
-de precios finaliza con un código de producto igual a 0.
-
-Al finalizar exportar a un archivo con formato de texto (.csv) para que la lista de precios pueda ser
-visualizada directamente utilizando un programa de planillas de cálculo como por ejemplo el Excel.
-
-*/
-
 #include <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
@@ -31,10 +15,12 @@ float ingresoFloatMayorA(int);
 int ingresoIntMayor(int);
 void mostrarProductos();
 void modificaProductos();
+void exportarCSV();
 
 int main(void)
 {
     int opcion;
+    exportarCSV();
     printf("Ingrese 1 si quiere dar de alta, 2 para modificar los precios, 3 para mostrar o 4 para finalizar: ");
     do
     {
@@ -66,6 +52,8 @@ int main(void)
                 printf("Ingreso incorrecto, intente nuevamente: ");
         }while(opcion!=1 && opcion!=2 && opcion!=3 && opcion!=4);
     }
+
+    exportarCSV();
     return 0;
 }
 
@@ -87,7 +75,7 @@ void ingresoProductos()
     printf("\n\n===INGRESO PRODUCTOS===\n\n");
     FILE *archivo;
     Producto prod;
-    archivo = abreArch("PRODUCTOS.dat","wb");
+    archivo = abreArch("PRODUCTOS.dat","wb"); // escribe y borra el archivo PRODUCTOS.dat existente
     int codigo;
     printf("Ingrese codigo del producto (con 0 finaliza): ");
     codigo = ingresoIntMayor(0);
@@ -101,7 +89,7 @@ void ingresoProductos()
         fgets(prod.descripcion,51,stdin);
         fwrite(&prod,sizeof(Producto),1,archivo);
 
-        printf("�Ingreso correcto!\n\nIngrese codigo del producto (con 0 finaliza): ");
+        printf("Ingreso correcto!\n\nIngrese codigo del producto (con 0 finaliza): ");
         codigo = ingresoIntMayor(0);
     }
     fclose(archivo);
@@ -137,7 +125,7 @@ void mostrarProductos()
     printf("\n\n===LISTA DE PRODUCTOS===\n\n");
     FILE *archivo;
     Producto prod;
-    archivo = abreArch("PRODUCTOS.dat","rb");
+    archivo = abreArch("PRODUCTOS.dat","rb"); // lee
     fread(&prod,sizeof(Producto),1,archivo);
     while(!feof(archivo))
     {
@@ -151,7 +139,7 @@ void modificaProductos()
 {
     FILE *archivo;
     Producto prod;
-    archivo = abreArch("PRODUCTOS.dat","r+b");
+    archivo = abreArch("PRODUCTOS.dat","r+b"); //lee y escribe
     int codigo,encontrado;
     float precio;
 
@@ -165,7 +153,7 @@ void modificaProductos()
         rewind(archivo); //llevo el puntero posicion al inicio para la nueva busqueda
         encontrado=0;
         fread(&prod,sizeof(Producto),1,archivo);
-        while(!feof(archivo) && !encontrado) //Se ley� o se llego a la ultima posicion sin encontrar el codigo
+        while(!feof(archivo) && !encontrado) //Se leyó o se llego a la ultima posicion sin encontrar el codigo
         {
             if(prod.codigo==codigo)
             {
@@ -184,4 +172,21 @@ void modificaProductos()
         codigo = ingresoIntMayor(0);
     }
     fclose(archivo);
+}
+
+void exportarCSV() // exporta codigo y precio de los productos en PRODUCTOS.dat en formato .csv
+{
+    FILE *archivo, *excel;
+    Producto prod;
+    archivo = abreArch("PRODUCTOS.dat","rb");
+    excel = abreArch("productos.csv","wt");
+    fprintf(excel, "Codigo Producto;Precio\n");
+    fread(&prod,sizeof(Producto),1,archivo);
+    while(!feof(archivo))
+    {
+        fprintf(excel, "%d;%f\n", prod.codigo, prod.precio);
+        fread(&prod,sizeof(Producto),1,archivo);
+    }
+    fclose(archivo);
+    fclose(excel);
 }
